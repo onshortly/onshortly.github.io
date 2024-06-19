@@ -1,16 +1,28 @@
 
-import './App.css';
+import { BrowserRouter, Route, Routes } from 'react-router-dom';
+import { Main } from './pages/Main';
+import NavigationMenu from './components/NavigationMenu';
+import { useState, useEffect } from 'react';
+import achievementsData from './data/AchievementData';
+import { AchievementProvider } from './context/AchievementContext';
+import Achievement from './components/Achievement';
 import Header from './components/Header';
-import Content from './components/Content';
-import Footer from './components/Footer';
+import { ParallaxHeader } from './components/ParallaxHeader';
 
 function App() {
+    
   return (
-    <div className="App">
-      <Header />
-      <Content />
-      <Footer />
-    </div>
+    <BrowserRouter basename={process.env.PUBLIC_URL}>
+      <AchievementProvider>
+     <Routes>
+            <Route path="/" Component={Main} />
+            <Route path="/about" element={<p>about me</p>} />
+            </Routes>
+            <div style={{ position: 'fixed', bottom: 20, right: 20 }}>
+                    <Achievement />
+                </div>
+            </AchievementProvider>
+    </BrowserRouter>
   );
 }
 

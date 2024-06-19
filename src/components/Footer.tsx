@@ -1,10 +1,6 @@
-// Footer.tsx
-
-import React from 'react';
 import styled from 'styled-components';
 
-// Styled components
-const FooterWrapper = styled.footer`
+const FooterWrapper = styled.div`
     background-color: #333;
     color: #fff;
     text-align: center;
@@ -22,12 +18,10 @@ const Container = styled.div`
     margin: 0 auto;
 `;
 
-const Footer: React.FC = () => {
+const Footer = () => {
     return (
         <FooterWrapper>
-            <Container>
-                <p>&copy; 2024 John Smith. All rights reserved.</p>
-            </Container>
+                <p>2024 John Smith. All rights reserved.</p>
         </FooterWrapper>
     );
 };

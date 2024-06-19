@@ -1,22 +1,15 @@
-// Main.tsx
-
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import styled from 'styled-components';
 
-// Styled components
-const MainWrapper = styled.main`
+const MainWrapper = styled.div`
     padding: 20px;
 `;
 
-const Section = styled.section`
+const Section = styled.section<{ isVisible: boolean }>`
     margin-bottom: 40px;
-    opacity: 0;
-    transform: translateY(20px);
+    opacity: ${props => (props.isVisible ? '1' : '0')};
+    transform: translateY(${props => (props.isVisible ? '0' : '20px')});
     transition: opacity 0.6s ease, transform 0.6s ease;
-
-    &:last-child {
-        margin-bottom: 0;
-    }
 `;
 
 const SectionTitle = styled.h2`
@@ -44,6 +37,8 @@ const Project = styled.div`
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     transition: transform 0.3s ease;
+    display: flex;
+    flex-direction: column;
 
     &:hover {
         transform: translateY(-5px); /* Lift up on hover */
@@ -55,56 +50,95 @@ const ProjectTitle = styled.h3`
     margin-bottom: 10px;
 `;
 
-const SkillList = styled.ul`
-    list-style-type: none;
-    padding: 0;
-    opacity: 0;
-    transform: translateY(20px);
-    transition: opacity 0.6s ease, transform 0.6s ease;
+const ProjectDescription = styled.p`
+    color: #666;
 `;
 
-const SkillListItem = styled.li`
-    margin-bottom: 10px;
+const SkillItem = styled.p`
+
 `;
 
-const ContactInfo = styled.div`
-    text-align: center;
-    opacity: 0;
-    transform: translateY(20px);
-    transition: opacity 0.6s ease, transform 0.6s ease;
-`;
+const MainContent: React.FC = () => {
+    const projectsRef = useRef<HTMLDivElement>(null);
+    const skillsRef = useRef<HTMLDivElement>(null);
+    const contactRef = useRef<HTMLDivElement>(null);
 
-const Content: React.FC = () => {
+    useEffect(() => {
+        const handleScroll = () => {
+            if (projectsRef.current) {
+                const top = projectsRef.current.getBoundingClientRect().top;
+                const isVisible = top < window.innerHeight - 100; // Adjust as needed
+                projectsRef.current.style.opacity = isVisible ? '1' : '0';
+                projectsRef.current.style.transform = isVisible ? 'translateY(0)' : 'translateY(20px)';
+            }
+
+            if (skillsRef.current) {
+                const top = skillsRef.current.getBoundingClientRect().top;
+                const isVisible = top < window.innerHeight - 100; // Adjust as needed
+                skillsRef.current.style.opacity = isVisible ? '1' : '0';
+                skillsRef.current.style.transform = isVisible ? 'translateY(0)' : 'translateY(20px)';
+            }
+
+            if (contactRef.current) {
+                const top = contactRef.current.getBoundingClientRect().top;
+                const isVisible = top < window.innerHeight - 100; // Adjust as needed
+                contactRef.current.style.opacity = isVisible ? '1' : '0';
+                contactRef.current.style.transform = isVisible ? 'translateY(0)' : 'translateY(20px)';
+            }
+        };
+
+        window.addEventListener('scroll', handleScroll);
+        return () => {
+            window.removeEventListener('scroll', handleScroll);
+        };
+    }, []);
+
     return (
         <MainWrapper>
-            <Section className="projects">
+            <Section ref={projectsRef} isVisible={true} className="projects">
                 <Container>
-                    <SectionTitle>Projects</SectionTitle>
+                    <SectionTitle>Personal Projects</SectionTitle>
                     <ProjectsGrid>
-                        {/* Project items */}
+                        <Project>
+                            <ProjectTitle>Project 1</ProjectTitle>
+                            <ProjectDescription>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla convallis libero sit amet eleifend fermentum.</ProjectDescription>
+                        </Project>
+                        <Project>
+                            <ProjectTitle>Project 2</ProjectTitle>
+                            <ProjectDescription>Phasellus ac vestibulum justo, vitae finibus leo. Vivamus at sapien nec turpis consequat tincidunt.</ProjectDescription>
+                        </Project>
+                    </ProjectsGrid>
+                </Container>
+                <Container>
+                    <SectionTitle>Past Professional Work</SectionTitle>
+                    <ProjectsGrid>
+                        <Project>
+                            <ProjectTitle>Project 1</ProjectTitle>
+                            <ProjectDescription>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla convallis libero sit amet eleifend fermentum.</ProjectDescription>
+                        </Project>
+                        <Project>
+                            <ProjectTitle>Project 2</ProjectTitle>
+                            <ProjectDescription>Phasellus ac vestibulum justo, vitae finibus leo. Vivamus at sapien nec turpis consequat tincidunt.</ProjectDescription>
+                        </Project>
                     </ProjectsGrid>
                 </Container>
             </Section>
 
-            <Section className="skills">
+            <Section ref={skillsRef} isVisible={false} className="skills">
                 <Container>
                     <SectionTitle>Skills</SectionTitle>
-                    <SkillList>
-                        {/* Skills list items */}
-                    </SkillList>
+                    <SkillItem>typescript</SkillItem>
                 </Container>
             </Section>
 
-            <Section className="contact">
+            <Section ref={contactRef} isVisible={false} className="contact">
                 <Container>
                     <SectionTitle>Contact</SectionTitle>
-                    <ContactInfo>
-                        {/* Contact information */}
-                    </ContactInfo>
+                    {/* Contact content */}
                 </Container>
             </Section>
         </MainWrapper>
     );
 };
 
-export default Content;
+export default MainContent;

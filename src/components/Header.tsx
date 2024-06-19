@@ -1,16 +1,24 @@
-// Header.tsx
-
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
+import ProfilePicture from '../assets/profile-picture.jpg';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faInstagram, faLinkedin } from '@fortawesome/free-brands-svg-icons';
 
-// Styled components
-const HeaderWrapper = styled.header`
+const HeaderWrapper = styled.header<{isCondensed: boolean}>`
+    position: sticky;
+    top: 0;
+    width: 100%;
+    padding: 60px 0 30px 0;
     background-color: #007bff;
-    color: #fff;
-    padding: 30px 0;
-    text-align: center;
-    margin-bottom: 30px;
-    transition: background-color 0.3s ease, color 0.3s ease;
+    z-index: 1000;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    transition: height 0.3s ease, padding 0.3s ease;
+
+    ${props => props.isCondensed && `
+        height: 50px; /* Adjust height as needed */
+        padding: 5px 20px; /* Adjust padding as needed */
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    `}
 `;
 
 const Container = styled.div`
@@ -50,6 +58,12 @@ const JobTitle = styled.p`
     transition: color 0.3s ease;
 `;
 
+const JobSubTitle = styled.p`
+    font-size: 1em;
+    margin-top: 5px;
+    transition: color 0.3s ease;
+`;
+
 const SocialLinks = styled.div`
     margin-top: 20px;
 `;
@@ -59,6 +73,7 @@ const SocialLink = styled.a`
     font-size: 1.5em;
     margin: 0 10px;
     transition: color 0.3s ease;
+    width: 30px;
 
     &:hover {
         color: #f0f0f0;
@@ -66,19 +81,49 @@ const SocialLink = styled.a`
 `;
 
 const Header: React.FC = () => {
+    const [isCondensed, setIsCondensed] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => {
+        setIsCondensed((isShrunk) => {
+        if (
+          !isShrunk &&
+          (document.body.scrollTop > 20 ||
+            document.documentElement.scrollTop > 20)
+        ) {
+          return true;
+        }
+
+        if (
+          isShrunk &&
+          document.body.scrollTop < 4 &&
+          document.documentElement.scrollTop < 4
+        ) {
+          return false;
+        }
+
+        return isShrunk;
+      });
+    };
+    window.addEventListener("scroll", onScroll);
+    return () => window.removeEventListener("scroll", onScroll);
+    // Previous logic.
+  }, []);
+
     return (
-        <HeaderWrapper>
+        <HeaderWrapper isCondensed={isCondensed}>
             <Container>
-                <Profile>
-                    <ProfilePic src="profile-pic.jpg" alt="Profile Picture" />
-                    <Name>John Smith</Name>
-                    <JobTitle>Senior Frontend Developer</JobTitle>
+                {!isCondensed && <Profile>
+                    <ProfilePic src={ProfilePicture} alt="Profile Picture" />
+                    <Name>Brent Baskin</Name>
+                    <JobTitle>Senior Software Engineer</JobTitle>
+                    <JobSubTitle>Meticulous and highly motivated. Obsessed with that very special space between art and science.</JobSubTitle>
                     <SocialLinks>
-                        <SocialLink href="#"><i className="fab fa-linkedin"></i></SocialLink>
-                        <SocialLink href="#"><i className="fab fa-github"></i></SocialLink>
-                        <SocialLink href="#"><i className="fab fa-twitter"></i></SocialLink>
+                        <SocialLink href="https://www.linkedin.com/in/brent-baskin/" target='_blank'><FontAwesomeIcon icon={faLinkedin}></FontAwesomeIcon></SocialLink>
+                        <SocialLink href="https://www.instagram.com/_deathandtaxes" target='_blank'><FontAwesomeIcon icon={faInstagram}></FontAwesomeIcon></SocialLink>
                     </SocialLinks>
                 </Profile>
+}
             </Container>
         </HeaderWrapper>
     );
