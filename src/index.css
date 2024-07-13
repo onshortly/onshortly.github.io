@@ -1,11 +1,12 @@
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+  font-family: Futura, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   height: 200vh;
+  background: #000;
 }
 
 code {
@@ -16,4 +17,14 @@ code {
 html,
 body {
   overscroll-behavior: none;
+}
+
+@font-face {
+  font-family: 'Futura';
+  src: url('./assets/Futura\ Bold.otf') format('opentype');
+}
+
+@font-face {
+  font-family: 'BeyondWonderful';
+  src: url('./assets/Beyond\ Wonderland.ttf') format('truetype');
 }

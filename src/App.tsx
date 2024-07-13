@@ -13,15 +13,15 @@ function App() {
     
   return (
     <BrowserRouter basename={process.env.PUBLIC_URL}>
-      <AchievementProvider>
+      {/* <AchievementProvider> */}
      <Routes>
             <Route path="/" Component={Main} />
             <Route path="/about" element={<p>about me</p>} />
             </Routes>
-            <div style={{ position: 'fixed', bottom: 20, right: 20 }}>
+            {/* <div style={{ position: 'fixed', bottom: 20, right: 20 }}>
                     <Achievement />
                 </div>
-            </AchievementProvider>
+            </AchievementProvider> */}
     </BrowserRouter>
   );
 }
