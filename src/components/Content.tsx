@@ -4,6 +4,7 @@ import ScrollPill from "./ScrollPill";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faAngleRight, faCircle } from "@fortawesome/free-solid-svg-icons";
 import { device } from "../utils";
+import { useNavigate } from "react-router-dom";
 
 const MainWrapper = styled.div`
   padding: 20px;
@@ -55,7 +56,7 @@ const Project = styled.div`
   }
 `;
 
-const ProjectTitle = styled.h3`
+const ProjectTitle = styled.span`
   font-size: 1.5em;
   margin-bottom: 10px;
 `;
@@ -89,9 +90,13 @@ const ProjectItem: React.FC<{
   title: string;
   content: string;
   destination: string;
-}> = ({ title, content, destination }) => {
+  external?: boolean;
+}> = ({ title, content, destination, external }) => {
+  const navigate = useNavigate();
   return (
-    <Project>
+    <Project onClick={() => {
+      external ? window.open(destination, '_blank') : navigate(destination);
+    }}>
       <ProjectTitle>{title}</ProjectTitle>
       <ProjectDescription>{content}</ProjectDescription>
       <NavIcon icon={faAngleRight} size="2x" />
@@ -129,18 +134,20 @@ const MainContent: React.FC = () => {
     title: string;
     content: string;
     destination: string;
+    external?: boolean;
   }[] = [
     {
       title: "Jaunt",
       content:
         "Vibe-y, black & white roguelike RPG. Heavily stylized. Work in progress.",
-      destination: "",
+      destination: "/jaunt",
     },
     {
       title: "Urza.ai Discord Bot",
       content:
         "Discord bot written to facilitate the creation of thousands of AI generated Magic: The Gathering cards.",
-      destination: "",
+      destination: "https://github.com/onshortly/URZA.ai-Bot",
+      external: true,
     },
   ];
 
@@ -218,6 +225,7 @@ const MainContent: React.FC = () => {
                   title={project.title}
                   content={project.content}
                   destination={project.destination}
+                  external={project.external}
                 />
               );
             })}

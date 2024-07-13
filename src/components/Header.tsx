@@ -2,6 +2,7 @@ import React from "react";
 import styled from "styled-components";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faGithub, faInstagram, faLinkedin } from "@fortawesome/free-brands-svg-icons";
+import { useNavigate } from "react-router-dom";
 
 const HeaderWrapper = styled.header`
   position: sticky;
@@ -21,6 +22,7 @@ const Container = styled.div`
 `;
 
 const Name = styled.div`
+cursor: pointer;
   font-size: 1.5rem;
   color: #fff;
 `;
@@ -37,10 +39,11 @@ const SocialLink = styled.a`
 `;
 
 const Header: React.FC = () => {
+  const navigate = useNavigate();
   return (
     <HeaderWrapper>
       <Container>
-        <Name>Brent Baskin</Name>
+        <Name onClick={() => navigate('/')} >Brent Baskin</Name>
         <div>
           <SocialLink
             href="https://www.linkedin.com/in/brent-baskin/"
