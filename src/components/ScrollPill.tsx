@@ -2,11 +2,12 @@ import { faArrowDown } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Plx from "react-plx";
 import styled from "styled-components";
+import { device } from "../utils";
 
 const PillContainer = styled(Plx)`
   cursor: pointer;
   position: fixed;
-  width: 220px;
+  width: 180px;
   bottom: 0;
   margin: 50px auto;
   left: 0;
@@ -17,9 +18,10 @@ const PillContainer = styled(Plx)`
   display: flex;
   justify-content: space-between;
   align-items: center;
+  border: 2px #FFF solid;
   span {
     font-family: Futura;
-    font-size: 32px;
+    font-size: 1.5rem;
     color: #fff;
   }
 `;
