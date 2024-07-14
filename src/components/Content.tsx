@@ -17,8 +17,11 @@ const Section = styled.div<{ isVisible: boolean }>`
   transition: opacity 0.6s ease, transform 0.6s ease;
 `;
 
-const SectionTitle = styled.h2`
-  font-size: 2.5em;
+const SectionTitle = styled.p`
+  width: 100%;
+  text-align: center;
+  font-family: BeyondWonderful;
+  font-size: 5rem;
   text-align: center;
   margin-bottom: 20px;
   transition: color 0.3s ease;
