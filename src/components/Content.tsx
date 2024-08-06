@@ -152,6 +152,11 @@ const MainContent: React.FC = () => {
       destination: "https://github.com/onshortly/URZA.ai-Bot",
       external: true,
     },
+    {
+      title: "Llliving Room",
+      content:"",
+      destination: "/living-room",
+    },
   ];
 
   const skills = [
