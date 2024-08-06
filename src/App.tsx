@@ -14,7 +14,7 @@ function App() {
         <Route path="/" Component={Main} />
         <Route path="/jaunt" Component={Jaunt} />
         <Route path="/about" element={<p>about me</p>} />
-        <Route path="/living-room" Component={LivingRoom} />
+        <Route path="/llliving-room" Component={LivingRoom} />
       </Routes>
       {/* <div style={{ position: 'fixed', bottom: 20, right: 20 }}>
                     <Achievement />
