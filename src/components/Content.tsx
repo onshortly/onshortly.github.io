@@ -155,7 +155,7 @@ const MainContent: React.FC = () => {
     {
       title: "Llliving Room",
       content:"",
-      destination: "/living-room",
+      destination: "/llliving-room",
     },
   ];
 
