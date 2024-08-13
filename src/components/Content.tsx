@@ -154,7 +154,7 @@ const MainContent: React.FC = () => {
     },
     {
       title: "Llliving Room",
-      content:"",
+      content: "Dunno, weird little thing where you can watch Youtube in a dingy Living Room. Work in progress.",
       destination: "/llliving-room",
     },
   ];
