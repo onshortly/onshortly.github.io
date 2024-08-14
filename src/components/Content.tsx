@@ -215,6 +215,7 @@ const MainContent: React.FC = () => {
                   title={project.title}
                   content={project.content}
                   destination={project.destination}
+                  external={project.external}
                 />
               );
             })}

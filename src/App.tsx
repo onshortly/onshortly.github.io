@@ -9,17 +9,12 @@ function App() {
   return (
     <BrowserRouter basename={process.env.PUBLIC_URL}>
       <ScrollToTop />
-      {/* <AchievementProvider> */}
       <Routes>
-        <Route path="/" Component={Main} />
+        <Route path="/" index Component={Main} />
         <Route path="/jaunt" Component={Jaunt} />
         <Route path="/about" element={<p>about me</p>} />
         <Route path="/llliving-room" Component={LivingRoom} />
       </Routes>
-      {/* <div style={{ position: 'fixed', bottom: 20, right: 20 }}>
-                    <Achievement />
-                </div>
-            </AchievementProvider> */}
     </BrowserRouter>
   );
 }
