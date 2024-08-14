@@ -6,6 +6,13 @@ import { faAngleRight, faCircle } from "@fortawesome/free-solid-svg-icons";
 import { device } from "../utils";
 import { useNavigate } from "react-router-dom";
 
+interface IProject {
+    title: string;
+    content: string;
+    destination: string;
+    external?: boolean;
+}
+
 const MainWrapper = styled.div`
   padding: 20px;
 `;
@@ -89,12 +96,7 @@ const SkillsWrapper = styled.div`
   flex-wrap: wrap;
 `;
 
-const ProjectItem: React.FC<{
-  title: string;
-  content: string;
-  destination: string;
-  external?: boolean;
-}> = ({ title, content, destination, external }) => {
+const ProjectItem: React.FC<IProject> = ({ title, content, destination, external }) => {
   const navigate = useNavigate();
   return (
     <Project onClick={() => {
@@ -108,37 +110,31 @@ const ProjectItem: React.FC<{
 };
 
 const MainContent: React.FC = () => {
-  const professionalProjects: {
-    title: string;
-    content: string;
-    destination: string;
-  }[] = [
+  const professionalProjects: IProject[] = [
     {
       title: "CAPE Analytics",
       content:
         "Full-stack web development. Working with geospatial data and mapping tools. React front-end, Node.js proxy server. Python backend.",
-      destination: "",
+      destination: "https://capeanalytics.com/capabilities/",
+      external: true
     },
     {
       title: "Weedmaps",
       content:
         "Front-end development. Cannabis e-commerce app with millions of MAUs. Server-side rendering. Reworked high-traffic UIs.",
-      destination: "",
+      destination: "https://weedmaps.com/",
+      external: true
     },
     {
       title: "KCF Technologies",
       content:
         "Full-stack web development. IoT app in React, displaying massive timeseries datasets. ASP.Net Core backend. CassandraDB. Lots of data.",
-      destination: "",
+      destination: "https://kcftech.com/solutions/smartdiagnostics/",
+      external: true
     },
   ];
 
-  const personalProjects: {
-    title: string;
-    content: string;
-    destination: string;
-    external?: boolean;
-  }[] = [
+  const personalProjects: IProject[] = [
     {
       title: "Jaunt",
       content:
