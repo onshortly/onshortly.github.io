@@ -10,7 +10,7 @@ function App() {
     <BrowserRouter basename={process.env.PUBLIC_URL}>
       <ScrollToTop />
       <Routes>
-        <Route path="/" index Component={Main} />
+        <Route index Component={Main} />
         <Route path="/jaunt" Component={Jaunt} />
         <Route path="/about" element={<p>about me</p>} />
         <Route path="/llliving-room" Component={LivingRoom} />
