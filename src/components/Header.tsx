@@ -22,7 +22,7 @@ const Container = styled.div`
 `;
 
 const Name = styled.div`
-cursor: pointer;
+  cursor: pointer;
   font-size: 1.5rem;
   color: #fff;
 `;

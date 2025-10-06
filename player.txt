@@ -1,0 +1,225 @@
+# Mushroom Timelapse Setup Guide
+
+## Part 1: Raspberry Pi Setup
+
+### 1. Install Required Software
+
+```bash
+sudo apt update
+sudo apt install python3 python3-pip ffmpeg
+
+# For Pi Camera
+sudo raspi-config
+# Enable Camera under Interface Options
+
+# For USB webcam, install fswebcam instead
+sudo apt install fswebcam
+```
+
+### 2. Install Python Dependencies
+
+```bash
+pip3 install requests
+```
+
+### 3. Create Directory Structure
+
+```bash
+mkdir -p ~/mushroom-photos
+mkdir -p ~/mushroom-videos
+mkdir -p ~/mushroom-timelapse
+```
+
+### 4. Set Up GitHub Token
+
+1. Go to GitHub Settings → Developer settings → Personal access tokens → Tokens (classic)
+2. Generate new token with `repo` scope (full control of private repositories)
+3. Copy the token
+
+```bash
+# Add to ~/.bashrc or ~/.profile
+echo 'export GITHUB_TOKEN="your_token_here"' >> ~/.bashrc
+source ~/.bashrc
+```
+
+### 5. Configure the Script
+
+Save the Python script to `~/mushroom-timelapse/upload_timelapse.py` and edit:
+- Change `GITHUB_REPO = 'username/mushroom-cam'` to your repo
+- Adjust `TIMELAPSE_FPS` if needed (30fps is good default)
+- Adjust paths if you used different directories
+
+Make it executable:
+```bash
+chmod +x ~/mushroom-timelapse/upload_timelapse.py
+```
+
+### 6. Set Up Photo Capture (Two Options)
+
+**Option A: Capture every 5 minutes (recommended)**
+
+```bash
+crontab -e
+```
+
+Add this line to capture a photo every 5 minutes:
+```
+*/5 * * * * /usr/bin/raspistill -o /home/pi/mushroom-photos/photo_$(date +\%Y\%m\%d_\%H\%M\%S).jpg -w 1280 -h 720 -q 85 -t 1
+```
+
+**Option B: Use the script's capture function**
+
+Uncomment the `capture_photo()` line in the main function and run more frequently.
+
+### 7. Set Up Hourly Timelapse Generation
+
+```bash
+crontab -e
+```
+
+Add this line to run the upload script every hour at the top of the hour:
+```
+0 * * * * /usr/bin/python3 /home/pi/mushroom-timelapse/upload_timelapse.py >> /home/pi/mushroom-timelapse/log.txt 2>&1
+```
+
+### 8. Test the Script
+
+```bash
+# Wait until you have some photos, then run manually:
+python3 ~/mushroom-timelapse/upload_timelapse.py
+
+# Check the log:
+tail -f ~/mushroom-timelapse/log.txt
+```
+
+---
+
+## Part 2: GitHub Repository Setup
+
+### 1. Create Repository
+
+1. Create a new public repository on GitHub (e.g., `mushroom-cam`)
+2. You don't need to add any files - the script will create the release
+
+### 2. Verify Release Creation
+
+After the first hourly run, check:
+- Go to your repo → Releases
+- You should see a release tagged `latest`
+- It should contain `.mp4` files
+
+---
+
+## Part 3: React Component Integration
+
+### 1. Add Component to Your Project
+
+Copy the `MushroomTimelapsePlayer` component into your React app:
+
+```bash
+# In your React project
+mkdir -p src/components
+# Save the component as src/components/MushroomTimelapsePlayer.tsx
+```
+
+### 2. Use the Component
+
+```tsx
+import MushroomTimelapsePlayer from './components/MushroomTimelapsePlayer';
+
+function App() {
+  return (
+    <div>
+      <h1>My Mushroom Grow</h1>
+      <MushroomTimelapsePlayer 
+        githubRepo="username/mushroom-cam"
+        hoursToShow={24}
+      />
+    </div>
+  );
+}
+```
+
+### 3. Deploy to GitHub Pages
+
+```bash
+npm run build
+# Deploy to gh-pages branch (your existing setup)
+```
+
+---
+
+## Troubleshooting
+
+### Photos aren't being captured
+```bash
+# Test camera manually
+raspistill -o test.jpg
+
+# Check crontab is running
+grep CRON /var/log/syslog
+```
+
+### Videos aren't uploading
+```bash
+# Check GitHub token
+echo $GITHUB_TOKEN
+
+# Test API access
+curl -H "Authorization: token $GITHUB_TOKEN" \
+  https://api.github.com/repos/username/mushroom-cam/releases
+
+# Check script log
+tail -50 ~/mushroom-timelapse/log.txt
+```
+
+### Videos show "Failed to load"
+- Check that your GitHub repo is public
+- Verify the release tag is exactly `latest`
+- Check browser console for CORS errors
+- Verify video filenames match the expected pattern
+
+### Playback is choppy
+- Reduce timelapse FPS (try 15 instead of 30)
+- Reduce photo resolution in capture command
+- Increase photo interval (every 10min instead of 5min)
+
+---
+
+## Optimization Tips
+
+### Bandwidth
+- Current setup: ~1-2MB per hour uploaded = ~25-50MB/day
+- This is very reasonable for most home connections
+
+### Storage
+- Photos: ~100-200MB for 24 hours
+- Videos: ~25-50MB for 24 hours
+- Total: ~300MB max on Pi
+
+### Video Quality
+- CRF 23 is good balance (lower = better quality, larger file)
+- 1280x720 is plenty for mushroom monitoring
+- 30fps makes smooth playback
+
+### Advanced: Add Sensor Data Overlay
+You can modify the ffmpeg command to overlay temperature/humidity:
+```python
+'-vf', f'fps={TIMELAPSE_FPS},drawtext=text=\'Temp\: 72°F Humidity\: 85%\':x=10:y=10:fontsize=24:fontcolor=white'
+```
+
+---
+
+## Maintenance
+
+### Weekly
+- Check logs for errors: `tail -100 ~/mushroom-timelapse/log.txt`
+- Verify videos are uploading: Check GitHub releases
+
+### Monthly
+- Check SD card space: `df -h`
+- Review timelapse quality - adjust settings if needed
+
+### As Needed
+- Download interesting timelapses before they rotate out
+- Adjust photo frequency based on growth speed

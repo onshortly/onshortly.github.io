@@ -1,0 +1,249 @@
+#!/usr/bin/env python3
+"""
+Mushroom Timelapse Uploader
+Generates hourly timelapse segments and uploads them to GitHub Releases
+Run this script every hour via cron
+"""
+
+import os
+import subprocess
+import requests
+from datetime import datetime, timedelta
+from pathlib import Path
+import json
+
+# Configuration
+GITHUB_TOKEN = os.getenv('GITHUB_TOKEN')  # Set this as environment variable
+GITHUB_REPO = 'username/mushroom-cam'  # Change to your repo
+PHOTOS_DIR = Path('/home/pi/mushroom-photos')
+OUTPUT_DIR = Path('/home/pi/mushroom-videos')
+HOURS_TO_KEEP = 24
+
+# Frame rate for timelapse (photos per hour / this number = video length in seconds)
+# Example: 60 photos/hour at 30fps = 2 second video per hour
+TIMELAPSE_FPS = 30
+
+def capture_photo():
+    """Capture a single photo using raspistill or fswebcam"""
+    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+    photo_path = PHOTOS_DIR / f'photo_{timestamp}.jpg'
+    
+    # For Raspberry Pi Camera
+    cmd = [
+        'raspistill',
+        '-o', str(photo_path),
+        '-w', '1280',
+        '-h', '720',
+        '-q', '85',
+        '-t', '1'
+    ]
+    
+    # Alternative for USB webcam:
+    # cmd = ['fswebcam', '-r', '1280x720', '--no-banner', str(photo_path)]
+    
+    try:
+        subprocess.run(cmd, check=True, capture_output=True)
+        print(f"Photo captured: {photo_path}")
+        return photo_path
+    except subprocess.CalledProcessError as e:
+        print(f"Error capturing photo: {e}")
+        return None
+
+def cleanup_old_photos():
+    """Remove photos older than HOURS_TO_KEEP"""
+    cutoff_time = datetime.now() - timedelta(hours=HOURS_TO_KEEP)
+    
+    for photo in PHOTOS_DIR.glob('photo_*.jpg'):
+        # Extract timestamp from filename
+        try:
+            timestamp_str = photo.stem.replace('photo_', '')
+            photo_time = datetime.strptime(timestamp_str, '%Y%m%d_%H%M%S')
+            
+            if photo_time < cutoff_time:
+                photo.unlink()
+                print(f"Deleted old photo: {photo}")
+        except (ValueError, OSError) as e:
+            print(f"Error processing {photo}: {e}")
+
+def get_photos_for_hour(hour_offset):
+    """Get all photos from a specific hour ago"""
+    target_time = datetime.now() - timedelta(hours=hour_offset)
+    hour_start = target_time.replace(minute=0, second=0, microsecond=0)
+    hour_end = hour_start + timedelta(hours=1)
+    
+    photos = []
+    for photo in sorted(PHOTOS_DIR.glob('photo_*.jpg')):
+        try:
+            timestamp_str = photo.stem.replace('photo_', '')
+            photo_time = datetime.strptime(timestamp_str, '%Y%m%d_%H%M%S')
+            
+            if hour_start <= photo_time < hour_end:
+                photos.append(photo)
+        except ValueError:
+            continue
+    
+    return photos
+
+def create_timelapse_segment(hour_offset):
+    """Create a timelapse video for a specific hour"""
+    photos = get_photos_for_hour(hour_offset)
+    
+    if len(photos) < 2:
+        print(f"Not enough photos for hour {hour_offset}, skipping")
+        return None
+    
+    # Generate output filename
+    target_time = datetime.now() - timedelta(hours=hour_offset)
+    output_filename = f"mushroom-{target_time.strftime('%Y-%m-%d-%H')}.mp4"
+    output_path = OUTPUT_DIR / output_filename
+    
+    # Create a temporary file list for ffmpeg
+    list_file = OUTPUT_DIR / 'filelist.txt'
+    with open(list_file, 'w') as f:
+        for photo in photos:
+            # ffmpeg concat requires this format
+            f.write(f"file '{photo.absolute()}'\n")
+            f.write(f"duration {1/TIMELAPSE_FPS}\n")
+        # Add last image again (ffmpeg quirk)
+        f.write(f"file '{photos[-1].absolute()}'\n")
+    
+    # Create timelapse using ffmpeg
+    cmd = [
+        'ffmpeg',
+        '-f', 'concat',
+        '-safe', '0',
+        '-i', str(list_file),
+        '-vf', f'fps={TIMELAPSE_FPS}',
+        '-c:v', 'libx264',
+        '-preset', 'medium',
+        '-crf', '23',
+        '-pix_fmt', 'yuv420p',
+        '-y',
+        str(output_path)
+    ]
+    
+    try:
+        subprocess.run(cmd, check=True, capture_output=True)
+        list_file.unlink()
+        print(f"Created timelapse: {output_path}")
+        return output_path
+    except subprocess.CalledProcessError as e:
+        print(f"Error creating timelapse: {e}")
+        if list_file.exists():
+            list_file.unlink()
+        return None
+
+def get_or_create_release():
+    """Get the 'latest' release or create it if it doesn't exist"""
+    headers = {
+        'Authorization': f'token {GITHUB_TOKEN}',
+        'Accept': 'application/vnd.github.v3+json'
+    }
+    
+    # Check if 'latest' release exists
+    url = f'https://api.github.com/repos/{GITHUB_REPO}/releases/tags/latest'
+    response = requests.get(url, headers=headers)
+    
+    if response.status_code == 200:
+        return response.json()
+    
+    # Create the release if it doesn't exist
+    url = f'https://api.github.com/repos/{GITHUB_REPO}/releases'
+    data = {
+        'tag_name': 'latest',
+        'name': 'Latest Mushroom Timelapse',
+        'body': 'Rolling 24-hour timelapse of mushroom growth. Updated hourly.',
+        'draft': False,
+        'prerelease': False
+    }
+    
+    response = requests.post(url, headers=headers, json=data)
+    
+    if response.status_code == 201:
+        print("Created new 'latest' release")
+        return response.json()
+    else:
+        raise Exception(f"Failed to create release: {response.text}")
+
+def upload_to_github_release(video_path):
+    """Upload video to GitHub release"""
+    if not GITHUB_TOKEN:
+        raise Exception("GITHUB_TOKEN environment variable not set")
+    
+    headers = {
+        'Authorization': f'token {GITHUB_TOKEN}',
+        'Accept': 'application/vnd.github.v3+json'
+    }
+    
+    # Get or create the release
+    release = get_or_create_release()
+    release_id = release['id']
+    
+    # Check if this asset already exists and delete it
+    filename = video_path.name
+    for asset in release.get('assets', []):
+        if asset['name'] == filename:
+            delete_url = f"https://api.github.com/repos/{GITHUB_REPO}/releases/assets/{asset['id']}"
+            requests.delete(delete_url, headers=headers)
+            print(f"Deleted existing asset: {filename}")
+    
+    # Upload the new asset
+    upload_url = f"https://uploads.github.com/repos/{GITHUB_REPO}/releases/{release_id}/assets"
+    
+    with open(video_path, 'rb') as f:
+        upload_headers = headers.copy()
+        upload_headers['Content-Type'] = 'video/mp4'
+        
+        params = {'name': filename}
+        response = requests.post(
+            upload_url,
+            headers=upload_headers,
+            params=params,
+            data=f
+        )
+    
+    if response.status_code == 201:
+        print(f"Successfully uploaded {filename} to GitHub release")
+        return True
+    else:
+        print(f"Failed to upload: {response.status_code} - {response.text}")
+        return False
+
+def cleanup_old_videos():
+    """Keep only the most recent 24 video files"""
+    videos = sorted(OUTPUT_DIR.glob('mushroom-*.mp4'), key=lambda x: x.stat().st_mtime)
+    
+    if len(videos) > HOURS_TO_KEEP:
+        for video in videos[:-HOURS_TO_KEEP]:
+            video.unlink()
+            print(f"Deleted old video: {video}")
+
+def main():
+    """Main execution function - run this hourly via cron"""
+    print(f"\n=== Mushroom Timelapse Script - {datetime.now()} ===\n")
+    
+    # Create directories if they don't exist
+    PHOTOS_DIR.mkdir(parents=True, exist_ok=True)
+    OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+    
+    # Step 1: Capture current photo (if running every few minutes via separate cron)
+    # Or skip this if you have a separate photo capture script
+    # capture_photo()
+    
+    # Step 2: Clean up old photos
+    cleanup_old_photos()
+    
+    # Step 3: Generate timelapse for the most recent complete hour
+    video_path = create_timelapse_segment(hour_offset=1)
+    
+    if video_path and video_path.exists():
+        # Step 4: Upload to GitHub
+        upload_to_github_release(video_path)
+    
+    # Step 5: Clean up old local videos
+    cleanup_old_videos()
+    
+    print("\n=== Script completed ===\n")
+
+if __name__ == '__main__':
+    main()

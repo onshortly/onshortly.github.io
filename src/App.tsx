@@ -3,6 +3,7 @@ import { Main } from "./pages/Main";
 import Jaunt from "./pages/Jaunt";
 import ScrollToTop from "./components/ScrollToTop";
 import { LivingRoom } from "./pages/LivingRoom";
+import Mushrooms from "./pages/Mushrooms";
 
 function App() {
 
@@ -14,6 +15,7 @@ function App() {
         <Route path="/jaunt" Component={Jaunt} />
         <Route path="/about" element={<p>about me</p>} />
         <Route path="/llliving-room" Component={LivingRoom} />
+        <Route path="/mushrooms" Component={Mushrooms} />
       </Routes>
     </BrowserRouter>
   );
