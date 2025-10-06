@@ -153,6 +153,11 @@ const MainContent: React.FC = () => {
       content: "Dunno, weird little thing where you can watch Youtube in a dingy Living Room. Work in progress.",
       destination: "/llliving-room",
     },
+    {
+      title: "Mushrooms",
+      content: "I grow mushrooms! Check out the dashboard I made for checking in on them, complete with timelapsed video!",
+      destination: "/mushrooms",
+    }
   ];
 
   const skills = [
